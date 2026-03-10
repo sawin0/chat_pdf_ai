@@ -15,4 +15,4 @@ def download_pdf(url: str) -> str:
     with open(file_path, "wb") as f:
         f.write(response.content)
 
-    return file_name
+    return file_path
