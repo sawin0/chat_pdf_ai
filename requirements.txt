@@ -11,3 +11,4 @@ Pillow
 sentence-transformers
 pdfminer.six
 requests
+tiktoken
