@@ -1,0 +1,66 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+
+# Build and packaging artifacts
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+*.whl
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Environment and secrets
+.env
+.env.*
+*.env
+
+# Logs and local runtime files
+*.log
+*.pid
+*.out
+*.err
+
+# Test and coverage artifacts
+.coverage
+.coverage.*
+htmlcov/
+
+# IDE/editor settings
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker
+*.dockerfile
+docker-compose.override.yml
+
+# Local databases and vector store data
+*.sqlite3
+*.db
+qdrant_storage/
+.qdrant/
+
+# App runtime/generated folders
+uploads/
+processed/
+tmp/

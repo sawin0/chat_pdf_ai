@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+gunicorn
+sqlalchemy
+psycopg2-binary
+pydantic-settings
+qdrant-client
+pytesseract
+pdf2image
+Pillow
+sentence-transformers
