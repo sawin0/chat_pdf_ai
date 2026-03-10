@@ -18,4 +18,4 @@ def process_pdf(data: PDFReuqest):
 
     text = extract_text_from_pdf(pdf_path)
 
-    return {"status": "Success", "characters_extracterd(length)": len(text)}
+    return {"status": "Success", "characters_extracterd(length)": len(text), "pdf_path": pdf_path, "text": text}

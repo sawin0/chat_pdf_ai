@@ -2,7 +2,7 @@ import requests
 import os
 import uuid
 
-TEMP_DIR = "temp"
+TEMP_DIR = "/tmp"
 
 def download_pdf(url: str) -> str:
     os.makedirs(TEMP_DIR, exist_ok=True)

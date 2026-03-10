@@ -13,7 +13,7 @@ def extract_text_ocr(pdf_path: str) -> str:
     full_text = ""
 
     for page in pages:
-        text = pytesseract.image_to_string(page)
+        text = pytesseract.image_to_string(page, lang="nep")
         full_text += text + "\n"
 
     return full_text
