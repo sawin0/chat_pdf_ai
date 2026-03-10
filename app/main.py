@@ -11,8 +11,12 @@ from app.qdrant_client import (
     store_embeddings,
 )
 from app.text_chunker import text_chunker
+from app.routers import query_router
 
 app = FastAPI()
+
+# Include the query PDF router
+app.include_router(query_router.router)
 
 
 class PDFReuqest(BaseModel):
