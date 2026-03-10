@@ -4,11 +4,13 @@ services:
   api:
     build: .
     container_name: pdf_ai_api
+    env_file:
+      - .env
     ports:
       - "8000:8000"
     volumes:
       - ./app:/app/app
-      - ./temp:/app/temp
+      - ./tmp:/app/tmp
 
   qdrant:
     image: qdrant/qdrant
