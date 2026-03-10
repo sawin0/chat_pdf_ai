@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  api:
+    build: .
+    container_name: pdf_ai_api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app/app
+      - ./temp:/app/temp
+
+  qdrant:
+    image: qdrant/qdrant
+    container_name: qdrant_db
+    ports:
+      - "6333:6333"
