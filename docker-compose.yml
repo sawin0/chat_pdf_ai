@@ -1,7 +1,7 @@
 services:
   api:
     build: .
-    container_name: pdf_ai_api
+    container_name: chat_pdf_ai
     env_file:
       - .env
     ports:
