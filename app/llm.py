@@ -1,5 +1,5 @@
-import requests
 import os
+from ollama import ResponseError, chat
 
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://ollama:11434")
 
@@ -13,57 +13,55 @@ def ask_local_llm(
     question = str(question or "")
     context = str(context or "")
 
-    # Prompt guardrail: force LLM to answer only from context
-    prompt = (
+    # Prompt guardrail: force LLM to answer only from context.
+    system_prompt = (
         "You are a helpful assistant that answers questions ONLY using the provided context. "
-        "If the answer is not contained in the context, respond with 'I don't know'.\n\n"
-        f"Context:\n{context}\n\n"
-        f"Question: {question}\nAnswer:"
+        "If the answer is not contained in the context, respond with 'I don't know'."
     )
+    user_prompt = f"Context:\n{context}\n\nQuestion: {question}\nAnswer:"
 
-    # Truncate prompt if too long
-    if len(prompt) > MAX_PROMPT_LENGTH:
-        prompt = prompt[:MAX_PROMPT_LENGTH] + "\n\n...[truncated]"
+    # Truncate user prompt if too long.
+    if len(user_prompt) > MAX_PROMPT_LENGTH:
+        user_prompt = user_prompt[:MAX_PROMPT_LENGTH] + "\n\n...[truncated]"
 
     try:
-        payload = {
-            "model": model,
-            "prompt": prompt,
-            "stream": False,
-            "options": {"num_predict": max_tokens},
-        }
-
-        # Use Ollama's native generate endpoint.
-        response = requests.post(
-            f"{OLLAMA_HOST}/api/generate", json=payload, timeout=150
+        # Use the official Ollama Python SDK chat API.
+        os.environ["OLLAMA_HOST"] = OLLAMA_HOST
+        response = chat(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            options={"num_predict": max_tokens},
         )
-        if response.status_code >= 400:
-            err_detail = ""
-            try:
-                err_detail = str(response.json().get("error", "")).strip()
-            except ValueError:
-                err_detail = response.text.strip()
 
-            if response.status_code == 404 and "model" in err_detail.lower():
-                return (
-                    f"Error: Model '{model}' is not available in Ollama. "
-                    f"Run: docker compose exec ollama ollama pull {model}"
-                )
+        # SDK returns message content as response.message.content.
+        answer = ""
+        if getattr(response, "message", None) is not None:
+            answer = str(getattr(response.message, "content", "") or "")
+        elif isinstance(response, dict):
+            answer = str(response.get("message", {}).get("content", "") or "")
 
-            return (
-                f"Error: Ollama request failed with status {response.status_code}"
-                + (f" ({err_detail})" if err_detail else "")
-            )
-
-        result = response.json()
-
-        # /api/generate returns text in `response` when stream=false.
-        answer = result.get("response", "")
         if answer:
             return answer.strip()
         return "Error: LLM returned an empty response."
 
-    except requests.exceptions.RequestException as e:
+    except ResponseError as e:
+        err_detail = str(getattr(e, "error", str(e))).strip()
+        status_code = getattr(e, "status_code", None)
+
+        if status_code == 404 and "model" in err_detail.lower():
+            return (
+                f"Error: Model '{model}' is not available in Ollama. "
+                f"Run: docker compose exec ollama ollama pull {model}"
+            )
+
+        if status_code is not None:
+            return f"Error: Ollama request failed with status {status_code}" + (
+                f" ({err_detail})" if err_detail else ""
+            )
+
+        return f"Error: Ollama request failed ({err_detail})"
+    except Exception as e:
         return f"Error: Failed to connect to LLM server ({e})"
-    except ValueError:
-        return "Error: Invalid response from LLM server."
