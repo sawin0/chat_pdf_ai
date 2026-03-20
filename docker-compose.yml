@@ -18,19 +18,6 @@ services:
     volumes:
       - qdrant_storage:/qdrant/storage
 
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
-    ports:
-      - "11434:11434"
-    environment:
-      - OLLAMA_HOST=0.0.0.0:11434
-    volumes:
-      - ollama_storage:/root/.ollama
-    restart: unless-stopped
-    command: ["serve"]
-
 
 volumes:
   qdrant_storage:
-  ollama_storage:

@@ -1,6 +1,6 @@
 # Chat PDF AI
 
-A local-first RAG API that ingests PDF files, creates embeddings, stores them in Qdrant, and answers questions using a local Ollama model.
+A local-first RAG API that ingests PDF files, creates embeddings, stores them in Qdrant, and answers questions using retrieved document context.
 
 This project is designed to run fully self-hosted with open-source components.
 
@@ -20,18 +20,16 @@ This project is designed to run fully self-hosted with open-source components.
   - performs semantic vector search in Qdrant
   - optionally filters results by `pdf_id`
   - builds context from top-k retrieved chunks
-  - asks a local Ollama model (`phi3:mini`) with guardrails to answer only from context
+  - returns retrieved context relevant to the question
 - Dockerized multi-service setup with:
   - FastAPI app
   - Qdrant vector database
-  - Ollama model server
 
 ## Tech Stack
 
 - Backend: FastAPI, Uvicorn
 - Vector DB: Qdrant
 - Embeddings: sentence-transformers (`all-MiniLM-L12-v2`, 384 dimensions)
-- LLM Inference: Ollama (`phi3:mini` by default)
 - PDF Text Extraction: pdfminer.six
 - OCR Fallback: pytesseract + pdf2image + Poppler
 - Containerization: Docker, Docker Compose
@@ -45,8 +43,7 @@ This project is designed to run fully self-hosted with open-source components.
 5. API upserts chunks + vectors into Qdrant
 6. Client asks a question at `/query-pdf`
 7. API retrieves top-k semantically similar chunks
-8. API sends context + question to Ollama
-9. API returns generated answer
+8. API returns retrieved context as the answer payload
 
 ## Project Structure
 
@@ -56,7 +53,7 @@ chat_pdf_ai/
     main.py                # FastAPI app + PDF processing endpoint
     routers/query_router.py# Query endpoint
     query_pdf.py           # Vector search and context building
-    llm.py                 # Ollama chat integration
+    llm.py                 # Retrieval answer formatter
     embeddings.py          # SentenceTransformer model
     qdrant_client.py       # Qdrant collection + storage helpers
     pdf_downloader.py      # PDF download utility
@@ -71,7 +68,7 @@ chat_pdf_ai/
 ## Prerequisites
 
 - Docker and Docker Compose
-- At least 8 GB RAM recommended for smooth local model and embedding workflow
+- At least 4 GB RAM recommended for embeddings and OCR workflow
 
 ## Run With Docker (Recommended)
 
@@ -81,13 +78,7 @@ chat_pdf_ai/
 docker compose up --build -d
 ```
 
-2. Pull the Ollama model inside the Ollama container:
-
-```bash
-docker compose exec ollama ollama pull phi3:mini
-```
-
-3. Verify API is up:
+2. Verify API is up:
 
 ```bash
 curl http://localhost:8000/docs
@@ -159,10 +150,7 @@ Notes:
 
 Current key defaults in code:
 
-- Ollama host: `http://ollama:11434`
-- Ollama model: `phi3:mini`
-- Max generation tokens: `256`
-- Prompt length cap: `3000` characters
+- Retrieved context length cap: `3000` characters
 - Chunk size: `500` words
 - Chunk overlap: `50` words
 - Qdrant collection: `pdf_embeddings`
@@ -178,10 +166,11 @@ Current key defaults in code:
 ## Suggested Next Improvements
 
 - Add request validation and proper error handling for download/extraction failures.
-- Add health/readiness endpoints for API, Qdrant, and Ollama.
+- Add health/readiness endpoints for API and Qdrant.
 - Add unit/integration tests for ingestion and query pipelines.
 - Add optional multilingual OCR and language auto-detection.
 - Add metadata filters (page number, source URL, tags) in retrieval.
+- Add an optional pluggable answer-generation backend if abstractive answers are needed later.
 
 ## License
 
