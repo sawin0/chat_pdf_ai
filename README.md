@@ -11,7 +11,7 @@ A RAG API that ingests PDF files, creates embeddings, stores them in Qdrant, and
   - extracts text using PDFMiner
   - falls back to OCR (Tesseract Nepali language pack) for scanned PDFs
   - splits text into overlapping chunks
-  - generates embeddings using Sentence Transformers (`all-MiniLM-L12-v2`)
+  - generates embeddings using Sentence Transformers (`intfloat/multilingual-e5-large`)
   - stores vectors and payload in Qdrant
 - Query endpoint (`/query-pdf`) that:
   - embeds the user question
@@ -28,7 +28,7 @@ A RAG API that ingests PDF files, creates embeddings, stores them in Qdrant, and
 
 - Backend: FastAPI, Uvicorn
 - Vector DB: Qdrant
-- Embeddings: sentence-transformers (`all-MiniLM-L12-v2`, 384 dimensions)
+- Embeddings: sentence-transformers (`intfloat/multilingual-e5-large`, 1024 dimensions)
 - LLM Routing: LangChain
 - Providers: Gemini, DeepSeek, Groq, Grok, OpenAI (fallback chain)
 - PDF Text Extraction: pdfminer.six
@@ -159,7 +159,7 @@ Current key defaults in code:
 - Chunk size: `500` words
 - Chunk overlap: `50` words
 - Qdrant collection: `pdf_embeddings`
-- Vector size: `384`
+- Vector size: `1024`
 
 Required API keys (at least one):
 

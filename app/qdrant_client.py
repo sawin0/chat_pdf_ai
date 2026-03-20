@@ -10,7 +10,7 @@ qdrant = QdrantClient(url="http://qdrant:6333")
 COLLECTION_NAME = "pdf_embeddings"
 
 
-def ensure_collection(vector_size: int = 384):
+def ensure_collection(vector_size: int = 1024):
     collections = qdrant.get_collections().collections
     if COLLECTION_NAME not in [c.name for c in collections]:
         qdrant.create_collection(
@@ -38,7 +38,11 @@ def store_embeddings(chunks: list, embeddings: list, pdf_id: str):
     points = [
         PointStruct(
             id=str(uuid.uuid5(uuid.NAMESPACE_URL, f"{pdf_id}:{i}")),
-            vector=embeddings[i].tolist() if hasattr(embeddings[i], "tolist") else list(embeddings[i]),
+            vector=(
+                embeddings[i].tolist()
+                if hasattr(embeddings[i], "tolist")
+                else list(embeddings[i])
+            ),
             payload={"text": chunks[i], "pdf_id": pdf_id, "chunk_index": i},
         )
         for i in range(len(chunks))
