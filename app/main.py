@@ -3,13 +3,14 @@ from pydantic import BaseModel
 
 from app.embeddings import get_embeddings
 from app.pdf_downloader import download_pdf
-from app.pdf_text_extractor import extract_text_from_pdf
+from app.pdf_text_extractor import extract_text_from_pdf_sarvamai
 from app.pdf_utils import generate_pdf_hash
 from app.qdrant_client import (
     ensure_collection,
     pdf_exists,
     store_embeddings,
 )
+from app.remove_tmp import remove_tmp_files
 from app.text_chunker import text_chunker
 from app.routers import query_router
 
@@ -36,9 +37,10 @@ def process_pdf(data: PDFReuqest):
 
     # Prevent duplicate embeddings
     if pdf_exists(pdf_id):
+        remove_tmp_files()
         return {"status": "already_processed", "pdf_id": pdf_id}
 
-    text = extract_text_from_pdf(pdf_path)
+    text = extract_text_from_pdf_sarvamai(pdf_path)
 
     # Chunk text
     chunks = text_chunker(text, chunk_size=500, overlap=50)
@@ -48,6 +50,8 @@ def process_pdf(data: PDFReuqest):
 
     # Store in Qdrant
     store_embeddings(chunks, embeddings, pdf_id)
+
+    remove_tmp_files()
 
     return {
         "status": "success",

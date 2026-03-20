@@ -1,15 +1,16 @@
 from pdfminer.high_level import extract_text
 from pdf2image import convert_from_path
-import pytesseract
-
 from sarvamai import SarvamAI
-
 from PyPDF2 import PdfReader, PdfWriter
+from app.clean_data import clean_extracted_text
+from app.extract_zip import extract_document_from_zip
+from app.split_pdf import split_pdf
 
 import os
-
-from app.split_pdf import split_pdf
+import pytesseract
 import time
+import zipfile
+import re
 
 
 def extract_text_pdfmine(pdf_path: str) -> str:
@@ -44,6 +45,8 @@ def extract_text_from_pdf_sarvamai(pdf_path: str) -> str:
     # Split PDF into chunks
     chunks = split_pdf(pdf_path, "./tmp")
 
+    result = ""
+
     # Upload document
     for i, chunk in enumerate(chunks):
         # Create a document intelligence job
@@ -68,8 +71,23 @@ def extract_text_from_pdf_sarvamai(pdf_path: str) -> str:
         print(f"Page metrics: {metrics}")
 
         # Download output (ZIP file containing the processed document)
-        job.download_output("./output.zip")
-        os.rename("./output.zip", f"./output_{i}.zip")
-        print(f"Output saved to ./output_{i}.zip")
+        job.download_output("./tmp/outputs/output.zip")
+        os.rename("./tmp/outputs/output.zip", f"./tmp/outputs/output_{i}.zip")
+        print(f"Output saved to ./tmp/outputs/output_{i}.zip")
 
-        time.sleep(5)  # Sleep to avoid hitting rate limits
+        extracted_markdown_path = extract_document_from_zip(
+            f"./tmp/outputs/output_{i}.zip"
+        )
+
+        content = ""
+
+        # Read the Markdown file
+        with open(extracted_markdown_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        clean_text = clean_extracted_text(content)
+        result += clean_text + "\n"
+        os.remove(extracted_markdown_path)
+        print(f"Cleaned text from chunk {i} added to result.")
+
+    return result.strip()
