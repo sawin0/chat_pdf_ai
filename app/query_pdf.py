@@ -7,7 +7,6 @@ def search_pdf(question: str, pdf_id: str, top_k: int = 3):
     ensure_collection()
     # Create question embedding and use it for vector similarity context search.
     query_vector = model.encode([question])[0]
-    print(f"Query vector shape: {query_vector.shape}, dtype: {query_vector.dtype}")
 
     # MUST convert to Python list (not numpy)
     query_list = query_vector.tolist()

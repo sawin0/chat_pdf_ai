@@ -33,8 +33,6 @@ def process_pdf(data: PDFReuqest):
 
     ensure_collection()
 
-    print("pdf_id " + pdf_id)
-
     # Prevent duplicate embeddings
     if pdf_exists(pdf_id):
         remove_tmp_files()

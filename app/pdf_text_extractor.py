@@ -53,27 +53,21 @@ def extract_text_from_pdf_sarvamai(pdf_path: str) -> str:
         job = client.document_intelligence.create_job(
             language="ne-IN", output_format="md"
         )
-        print(f"Job created: {job.job_id}")
 
         job.upload_file(chunk)
-        print(f"File uploaded: {chunk}")
 
         # Start processing
         job.start()
-        print("Job started")
 
         # Wait for completion
         status = job.wait_until_complete()
-        print(f"Job completed with state: {status.job_state}")
 
         # Get processing metrics
         metrics = job.get_page_metrics()
-        print(f"Page metrics: {metrics}")
 
         # Download output (ZIP file containing the processed document)
         job.download_output("./tmp/outputs/output.zip")
         os.rename("./tmp/outputs/output.zip", f"./tmp/outputs/output_{i}.zip")
-        print(f"Output saved to ./tmp/outputs/output_{i}.zip")
 
         extracted_markdown_path = extract_document_from_zip(
             f"./tmp/outputs/output_{i}.zip"
@@ -88,6 +82,5 @@ def extract_text_from_pdf_sarvamai(pdf_path: str) -> str:
         clean_text = clean_extracted_text(content)
         result += clean_text + "\n"
         os.remove(extracted_markdown_path)
-        print(f"Cleaned text from chunk {i} added to result.")
 
     return result.strip()

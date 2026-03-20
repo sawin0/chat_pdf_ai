@@ -19,10 +19,5 @@ class QueryResponse(BaseModel):
 @router.post("/query-pdf", response_model=QueryResponse)
 def query_pdf_endpoint(data: QueryRequest):
     context = search_pdf(data.question, data.pdf_id, data.top_k)
-    print("context...")
-    print(context)
-    print("question...")
-    print(data.question)
-    print("Context retrieved, now asking LLM...")
     answer = ask_rag_llm(data.question, context)
     return {"answer": answer}
