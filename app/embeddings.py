@@ -6,6 +6,7 @@ from sentence_transformers import SentenceTransformer
 # | `MiniLM‑L6`      | 384 | ⭐⭐⭐     | ⭐⭐⭐⭐  | fastest small      |
 # | **`MiniLM‑L12`** | 384 | ⭐⭐⭐⭐    | ⭐⭐⭐⭐  | best free balance  |
 # | `mpnet‑base`     | 768 | ⭐⭐⭐⭐⭐   | ⭐⭐⭐   | most accurate free |
+# | intfloat/multilingual-e5-large | 1024 | ⭐⭐⭐⭐⭐   | ⭐⭐    | best multilingual  |
 
 # all-MiniLM-L12-v2 and all-MiniLM-16-v2
 model = SentenceTransformer("all-MiniLM-L12-v2") # 384-d embeddings

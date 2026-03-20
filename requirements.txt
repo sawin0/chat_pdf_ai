@@ -13,3 +13,5 @@ pdfminer.six
 requests
 ollama
 tiktoken
+sarvamai
+PyPDF2
