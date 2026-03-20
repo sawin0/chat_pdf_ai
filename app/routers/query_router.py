@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from app.query_pdf import search_pdf
-from app.llm import ask_local_llm  # import the helper
+from app.llm import ask_rag_llm
 
 router = APIRouter()
 
@@ -9,7 +9,7 @@ router = APIRouter()
 class QueryRequest(BaseModel):
     question: str
     pdf_id: str | None = None
-    top_k: int = 5
+    top_k: int = 3
 
 
 class QueryResponse(BaseModel):
@@ -19,6 +19,10 @@ class QueryResponse(BaseModel):
 @router.post("/query-pdf", response_model=QueryResponse)
 def query_pdf_endpoint(data: QueryRequest):
     context = search_pdf(data.question, data.pdf_id, data.top_k)
-    # print(context)  # Debug: print retrieved context
-    answer = ask_local_llm(data.question, context)
+    print("context...")
+    print(context)
+    print("question...")
+    print(data.question)
+    print("Context retrieved, now asking LLM...")
+    answer = ask_rag_llm(data.question, context)
     return {"answer": answer}

@@ -1,8 +1,6 @@
 # Chat PDF AI
 
-A local-first RAG API that ingests PDF files, creates embeddings, stores them in Qdrant, and answers questions using retrieved document context.
-
-This project is designed to run fully self-hosted with open-source components.
+A RAG API that ingests PDF files, creates embeddings, stores them in Qdrant, and answers questions using a multi-provider LLM fallback chain.
 
 ## What We Have Built
 
@@ -20,7 +18,8 @@ This project is designed to run fully self-hosted with open-source components.
   - performs semantic vector search in Qdrant
   - optionally filters results by `pdf_id`
   - builds context from top-k retrieved chunks
-  - returns retrieved context relevant to the question
+  - routes to a LangChain provider based on query complexity
+  - falls back across providers to reduce failures and stretch free tiers
 - Dockerized multi-service setup with:
   - FastAPI app
   - Qdrant vector database
@@ -30,6 +29,8 @@ This project is designed to run fully self-hosted with open-source components.
 - Backend: FastAPI, Uvicorn
 - Vector DB: Qdrant
 - Embeddings: sentence-transformers (`all-MiniLM-L12-v2`, 384 dimensions)
+- LLM Routing: LangChain
+- Providers: Gemini, DeepSeek, Groq, Grok, OpenAI (fallback chain)
 - PDF Text Extraction: pdfminer.six
 - OCR Fallback: pytesseract + pdf2image + Poppler
 - Containerization: Docker, Docker Compose
@@ -43,7 +44,9 @@ This project is designed to run fully self-hosted with open-source components.
 5. API upserts chunks + vectors into Qdrant
 6. Client asks a question at `/query-pdf`
 7. API retrieves top-k semantically similar chunks
-8. API returns retrieved context as the answer payload
+8. API routes to the best available LLM provider
+9. API falls back to the next provider on failure
+10. API returns a grounded answer from retrieved context
 
 ## Project Structure
 
@@ -53,7 +56,7 @@ chat_pdf_ai/
     main.py                # FastAPI app + PDF processing endpoint
     routers/query_router.py# Query endpoint
     query_pdf.py           # Vector search and context building
-    llm.py                 # Retrieval answer formatter
+    llm.py                 # LangChain routing + multi-provider fallback
     embeddings.py          # SentenceTransformer model
     qdrant_client.py       # Qdrant collection + storage helpers
     pdf_downloader.py      # PDF download utility
@@ -150,11 +153,21 @@ Notes:
 
 Current key defaults in code:
 
-- Retrieved context length cap: `3000` characters
+- Context cap sent to LLM: `6000` characters
+- Fallback order (simple queries): `Gemini -> DeepSeek -> Groq -> Grok -> OpenAI`
+- Fallback order (complex queries): `DeepSeek -> Gemini -> Groq -> Grok -> OpenAI`
 - Chunk size: `500` words
 - Chunk overlap: `50` words
 - Qdrant collection: `pdf_embeddings`
 - Vector size: `384`
+
+Required API keys (at least one):
+
+- `GEMINI_API_KEY`
+- `DEEPSEEK_API_KEY`
+- `GROQ_API_KEY`
+- `GROK_API_KEY` (or `XAI_API_KEY`)
+- `OPENAI_API_KEY`
 
 ## Known Limitations
 
