@@ -4,6 +4,7 @@ gunicorn
 sqlalchemy
 psycopg2-binary
 pydantic-settings
+pinecone
 pytesseract
 pdf2image
 Pillow
