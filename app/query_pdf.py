@@ -1,39 +1,12 @@
-from app.qdrant_client import qdrant, COLLECTION_NAME, ensure_collection
-from qdrant_client.http.models import Filter, FieldCondition, MatchValue
+from app.vector_store import ensure_collection, search
 from app.embeddings import model
 
 
 def search_pdf(question: str, pdf_id: str, top_k: int = 3):
     ensure_collection()
-    # Create question embedding and use it for vector similarity context search.
     query_vector = model.encode([question])[0]
-
-    # MUST convert to Python list (not numpy)
-    query_list = query_vector.tolist()
-
-    # 2. Build filter if user wants to restrict to a specific PDF
-    q_filter = None
-    if pdf_id:
-        q_filter = Filter(
-            must=[FieldCondition(key="pdf_id", match=MatchValue(value=pdf_id))]
-        )
-
-    # 3) Perform nearest neighbor search
-    results = qdrant.query_points(
-        collection_name=COLLECTION_NAME,
-        query=query_list,
-        query_filter=q_filter,
-        limit=top_k,
-        score_threshold=0.3,  # filter out semantically unrelated chunks
-        with_payload=True,  # include stored payload in results
+    query_list = (
+        query_vector.tolist() if hasattr(query_vector, "tolist") else list(query_vector)
     )
-
-    # 4) Combine retrieved text into a single context string
-    hits = results.points if hasattr(results, "points") else results
-    texts = [
-        hit.payload.get("text", "").strip()
-        for hit in hits
-        if hit.payload and hit.payload.get("text", "").strip()
-    ]
-    context = "\n\n".join(texts)
-    return context
+    texts = search(query_list, pdf_id=pdf_id, top_k=top_k)
+    return "\n\n".join(texts)

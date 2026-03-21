@@ -9,15 +9,3 @@ services:
     volumes:
       - ./app:/app/app
       - ./tmp:/app/tmp
-
-  qdrant:
-    image: qdrant/qdrant
-    container_name: qdrant_db
-    ports:
-      - "6333:6333"
-    volumes:
-      - qdrant_storage:/qdrant/storage
-
-
-volumes:
-  qdrant_storage:

@@ -5,7 +5,7 @@ from app.embeddings import get_embeddings
 from app.pdf_downloader import download_pdf
 from app.pdf_text_extractor import extract_text_from_pdf_sarvamai
 from app.pdf_utils import generate_pdf_hash
-from app.qdrant_client import (
+from app.vector_store import (
     ensure_collection,
     pdf_exists,
     store_embeddings,
@@ -46,7 +46,7 @@ def process_pdf(data: PDFReuqest):
     # Create embeddings
     embeddings = get_embeddings(chunks)
 
-    # Store in Qdrant
+    # Store embeddings
     store_embeddings(chunks, embeddings, pdf_id)
 
     remove_tmp_files()
