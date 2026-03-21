@@ -139,6 +139,16 @@ def _provider_llm(provider: str):
             temperature=0,
         )
 
+    if provider == "grok":
+        grok_api_key = os.getenv("GROK_API_KEY")
+        if grok_api_key:
+            return ChatOpenAI(
+                model=os.getenv("GROK_MODEL", "grok-2-latest"),
+                api_key=grok_api_key,
+                base_url=os.getenv("GROK_BASE_URL", "https://api.x.ai/v1"),
+                temperature=0,
+            )
+
     if provider == "openai" and os.getenv("OPENAI_API_KEY"):
         return ChatOpenAI(
             model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
@@ -150,7 +160,7 @@ def _provider_llm(provider: str):
 
 
 def _get_candidate_providers() -> List[str]:
-    return ["gemini", "groq", "deepseek", "openai"]
+    return ["gemini", "deepseek", "groq", "grok", "openai"]
 
 
 # ----------------- MAIN FUNCTION -----------------
