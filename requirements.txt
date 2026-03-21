@@ -1,10 +1,5 @@
 fastapi
 uvicorn
-gunicorn
-sqlalchemy
-psycopg2-binary
-pydantic-settings
-python-dotenv
 pinecone
 pytesseract
 pdf2image
@@ -12,11 +7,7 @@ Pillow
 sentence-transformers
 pdfminer.six
 requests
-tiktoken
 sarvamai
 PyPDF2
 langchain-core
-langchain-huggingface
-langchain-openai
-langchain-google-genai
 langchain-groq
