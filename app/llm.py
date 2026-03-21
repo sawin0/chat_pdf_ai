@@ -1,15 +1,15 @@
 import os
 import re
-from typing import List
 
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_openai import ChatOpenAI
+from langchain_groq import ChatGroq
 
 try:
-    from langchain_groq import ChatGroq
+    from dotenv import load_dotenv
+
+    load_dotenv()
 except Exception:
-    ChatGroq = None
+    pass
 
 
 MAX_CONTEXT_LENGTH = 6000
@@ -116,89 +116,65 @@ def is_valid_answer(answer: str, question: str, intent: str) -> bool:
     return True
 
 
-# ----------------- LLM PROVIDERS -----------------
-def _provider_llm(provider: str):
-    if provider == "gemini" and os.getenv("GEMINI_API_KEY"):
-        return ChatGoogleGenerativeAI(
-            model=os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
-            temperature=0,
-        )
-
-    if provider == "deepseek" and os.getenv("DEEPSEEK_API_KEY"):
-        return ChatOpenAI(
-            model=os.getenv("DEEPSEEK_MODEL", "deepseek-chat"),
-            api_key=os.getenv("DEEPSEEK_API_KEY"),
-            base_url="https://api.deepseek.com/v1",
-            temperature=0,
-        )
-
-    if provider == "groq" and os.getenv("GROQ_API_KEY") and ChatGroq:
-        return ChatGroq(
-            model=os.getenv("GROQ_MODEL", "llama-3.1-8b-instant"),
-            api_key=os.getenv("GROQ_API_KEY"),
-            temperature=0,
-        )
-
-    if provider == "grok":
-        grok_api_key = os.getenv("GROK_API_KEY")
-        if grok_api_key:
-            return ChatOpenAI(
-                model=os.getenv("GROK_MODEL", "grok-2-latest"),
-                api_key=grok_api_key,
-                base_url=os.getenv("GROK_BASE_URL", "https://api.x.ai/v1"),
-                temperature=0,
-            )
-
-    if provider == "openai" and os.getenv("OPENAI_API_KEY"):
-        return ChatOpenAI(
-            model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
-            api_key=os.getenv("OPENAI_API_KEY"),
-            temperature=0,
-        )
-
-    return None
-
-
-def _get_candidate_providers() -> List[str]:
-    return ["gemini", "deepseek", "groq", "grok", "openai"]
+# ----------------- LLM PROVIDER -----------------
+def _get_llm():
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        return None
+    return ChatGroq(
+        model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
+        api_key=api_key,
+        temperature=0,
+    )
 
 
 # ----------------- MAIN FUNCTION -----------------
 def ask_rag_llm(question: str, context: str) -> str:
     question = str(question or "").strip()
-    context = str(context or "").strip()
+    raw_context = str(context or "").strip()
 
-    if not context:
+    print(
+        "\n--- RAW INPUT ---\n"
+        f"Question length: {len(question)}\n"
+        f"Context length: {len(raw_context)}\n"
+        f"Context preview:\n{raw_context[:800]}\n"
+    )
+
+    if not raw_context:
         return FALLBACK
 
-    # ✅ Clean context
-    context = clean_context(context)
+    context = clean_context(raw_context)
 
-    # ✅ Detect intent
+    if not context and raw_context:
+        print("\n⚠️ Cleaned context became empty. Falling back to raw context.\n")
+        context = raw_context
+
+    print(
+        "\n--- CLEANED CONTEXT ---\n"
+        f"Context length: {len(context)}\n"
+        f"Context preview:\n{context[:800]}\n"
+    )
+
     intent = detect_intent(question)
-
     prompt = _build_prompt()
 
-    providers = _get_candidate_providers()
+    print("\n--- PROMPT ---\n" f"Question:\n{question}\n\n" f"Context:\n{context}\n")
 
-    for provider in providers:
-        llm = _provider_llm(provider)
-        if llm is None:
-            continue
+    llm = _get_llm()
+    if llm is None:
+        print("\n❌ No GROQ_API_KEY set.\n")
+        return FALLBACK
 
-        try:
-            chain = prompt | llm
-            response = chain.invoke({"question": question, "context": context})
-            answer = _extract_content(response)
+    try:
+        chain = prompt | llm
+        response = chain.invoke({"question": question, "context": context})
+        answer = _extract_content(response)
 
-            print("\n--- RAW ANSWER ---\n", answer)
+        print("\n--- RAW ANSWER ---\n", answer)
 
-            # ✅ Validate answer
-            if is_valid_answer(answer, question, intent):
-                return answer
+        if is_valid_answer(answer, question, intent):
+            return answer
+    except Exception as e:
+        print(f"\n❌ ERROR from groq: {e}\n")
 
-        except Exception as e:
-            print(f"\n❌ ERROR from {provider}: {e}\n")
-            continue
-    # ✅ Safe fallback (NO leakage)
     return FALLBACK

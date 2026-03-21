@@ -59,8 +59,35 @@ def search(query_vector: list, pdf_id: str | None = None, top_k: int = 3) -> lis
         filter=filter_dict,
         include_metadata=True,
     )
-    return [
+
+    total_matches = len(results.matches)
+    top_scores = [
+        round(match.score, 4) for match in results.matches[: min(5, total_matches)]
+    ]
+    print(
+        "\n--- RETRIEVAL ---\n"
+        f"pdf_id filter: {pdf_id}\n"
+        f"top_k: {top_k}\n"
+        f"raw matches: {total_matches}\n"
+        f"top scores: {top_scores}\n"
+    )
+
+    filtered = [
         match.metadata["text"]
         for match in results.matches
         if match.score >= _SCORE_THRESHOLD and match.metadata.get("text", "").strip()
     ]
+
+    if not filtered and total_matches > 0:
+        # Fallback so context is not empty when scores are just below threshold.
+        filtered = [
+            match.metadata.get("text", "")
+            for match in results.matches
+            if match.metadata.get("text", "").strip()
+        ]
+        print(
+            "\n⚠️ No matches passed score threshold; using raw top matches as fallback.\n"
+        )
+
+    print(f"Returned chunks: {len(filtered)}\n")
+    return filtered
