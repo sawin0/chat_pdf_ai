@@ -1,7 +1,6 @@
 fastapi
 uvicorn
 pinecone
-Pillow
 sentence-transformers
 requests
 sarvamai
