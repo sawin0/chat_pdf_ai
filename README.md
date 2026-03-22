@@ -2,6 +2,8 @@
 
 A FastAPI-based RAG API that ingests PDF files, creates multilingual embeddings, stores them in Pinecone, and answers questions with a grounded Groq-backed response pipeline.
 
+This repository is now organized as a root workspace with separate `backend/` and `frontend/` folders. The backend app is implemented today; the frontend folder is available for the client application.
+
 ## What We Have Built
 
 - PDF ingestion endpoint (`/process-pdf`) that:
@@ -54,24 +56,29 @@ A FastAPI-based RAG API that ingests PDF files, creates multilingual embeddings,
 
 ```
 chat_pdf_ai/
-  app/
-    main.py                 # FastAPI app + /process-pdf endpoint
-    routers/query_router.py # /query-pdf endpoint
-    query_pdf.py            # Query embedding + retrieval context build
-    llm.py                  # Prompting, intent checks, Groq call, fallback
-    embeddings.py           # SentenceTransformer model loader
-    vector_store.py         # Pinecone index management + upsert/search
-    pdf_downloader.py       # URL download to /tmp
-    pdf_text_extractor.py   # Sarvam extraction flow
-    split_pdf.py            # Splits large PDF into smaller chunks
-    extract_zip.py          # Extracts Sarvam output markdown from ZIP
-    clean_data.py           # Markdown cleanup utility
-    text_chunker.py         # Overlapping word chunk logic
-    pdf_utils.py            # SHA-256 hash generation for PDF id
-    remove_tmp.py           # Cleans local ./tmp directory
-  Dockerfile
+  backend/
+    app/
+      main.py                 # FastAPI app + /process-pdf endpoint
+      routers/query_router.py # /query-pdf endpoint
+      query_pdf.py            # Query embedding + retrieval context build
+      llm.py                  # Prompting, intent checks, Groq call, fallback
+      embeddings.py           # SentenceTransformer model loader
+      vector_store.py         # Pinecone index management + upsert/search
+      pdf_downloader.py       # URL download to /tmp
+      pdf_text_extractor.py   # Sarvam extraction flow
+      split_pdf.py            # Splits large PDF into smaller chunks
+      extract_zip.py          # Extracts Sarvam output markdown from ZIP
+      clean_data.py           # Markdown cleanup utility
+      text_chunker.py         # Overlapping word chunk logic
+      pdf_utils.py            # SHA-256 hash generation for PDF id
+      remove_tmp.py           # Cleans local ./tmp directory
+    Dockerfile
+    requirements.txt
+    tmp/
+  frontend/
+    # frontend app will live here
   docker-compose.yml
-  requirements.txt
+  .env
 ```
 
 ## Prerequisites
@@ -117,16 +124,18 @@ Swagger UI:
 
 ## Run Locally (Without Docker)
 
-1. Create and activate a virtual environment.
+1. Create and activate a virtual environment inside `backend/`.
 2. Install dependencies:
 
 ```bash
+cd backend
 pip install -r requirements.txt
 ```
 
 3. Start API:
 
 ```bash
+cd backend
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
@@ -187,8 +196,6 @@ Notes:
 
 - `pdf_id` can be omitted to query across all indexed PDFs.
 - `top_k` default is `3`.
-
-
 
 ## License
 

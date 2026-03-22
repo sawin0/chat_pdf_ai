@@ -1,12 +1,13 @@
 services:
   api:
-    build: .
+    build:
+      context: ./backend
     container_name: chat_pdf_ai
     env_file:
       - .env
     ports:
       - "8000:8000"
     volumes:
-      - ./app:/app/app
-      - ./tmp:/app/tmp
+      - ./backend/app:/app/app
+      - ./backend/tmp:/app/tmp
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
