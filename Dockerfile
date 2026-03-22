@@ -6,14 +6,6 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies for OCR
-RUN apt-get update && apt-get install -y \
-    tesseract-ocr \
-    tesseract-ocr-nep \
-    poppler-utils \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
-
 # Copy requirements first (better caching)
 COPY requirements.txt .
 

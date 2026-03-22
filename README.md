@@ -9,7 +9,6 @@ A FastAPI-based RAG API that ingests PDF files, creates multilingual embeddings,
   - computes a stable SHA-256 PDF id
   - prevents duplicate processing for the same PDF
   - extracts text using SarvamAI Document Intelligence (PDF split into chunks)
-  - includes utility paths for PDFMiner and OCR (Nepali) extraction
   - splits text into overlapping chunks
   - generates embeddings using Sentence Transformers (`intfloat/multilingual-e5-large`)
   - stores vectors and metadata in Pinecone
@@ -32,8 +31,6 @@ A FastAPI-based RAG API that ingests PDF files, creates multilingual embeddings,
 - LLM Orchestration: LangChain (`langchain-core` + `langchain-groq`)
 - LLM Provider: Groq
 - PDF Text Extraction (primary): SarvamAI Document Intelligence (markdown output)
-- PDF Text Extraction (available utilities): pdfminer.six
-- OCR Utility (available path): pytesseract + pdf2image + Poppler
 - Containerization: Docker, Docker Compose
 
 ## Architecture
@@ -65,7 +62,7 @@ chat_pdf_ai/
     embeddings.py           # SentenceTransformer model loader
     vector_store.py         # Pinecone index management + upsert/search
     pdf_downloader.py       # URL download to /tmp
-    pdf_text_extractor.py   # Sarvam extraction + helper PDF/OCR paths
+    pdf_text_extractor.py   # Sarvam extraction flow
     split_pdf.py            # Splits large PDF into smaller chunks
     extract_zip.py          # Extracts Sarvam output markdown from ZIP
     clean_data.py           # Markdown cleanup utility
@@ -80,7 +77,7 @@ chat_pdf_ai/
 ## Prerequisites
 
 - Docker and Docker Compose
-- At least 4 GB RAM recommended for embedding and OCR/image conversion workloads
+- At least 4 GB RAM recommended for embedding workloads
 - External service credentials:
   - Pinecone API key
   - Groq API key

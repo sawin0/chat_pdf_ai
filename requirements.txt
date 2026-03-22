@@ -1,11 +1,8 @@
 fastapi
 uvicorn
 pinecone
-pytesseract
-pdf2image
 Pillow
 sentence-transformers
-pdfminer.six
 requests
 sarvamai
 PyPDF2

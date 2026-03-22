@@ -1,42 +1,9 @@
-from pdfminer.high_level import extract_text
-from pdf2image import convert_from_path
 from sarvamai import SarvamAI
-from PyPDF2 import PdfReader, PdfWriter
 from app.clean_data import clean_extracted_text
 from app.extract_zip import extract_document_from_zip
 from app.split_pdf import split_pdf
 
 import os
-import pytesseract
-import time
-import zipfile
-import re
-
-
-def extract_text_pdfmine(pdf_path: str) -> str:
-    return extract_text(pdf_path)
-
-
-def extract_text_ocr(pdf_path: str) -> str:
-    pages = convert_from_path(pdf_path)
-
-    full_text = ""
-
-    for page in pages:
-        text = pytesseract.image_to_string(page, lang="nep")
-        full_text += text + "\n"
-
-    return full_text
-
-
-def extract_text_from_pdf(pdf_path: str) -> str:
-
-    text = extract_text_pdfmine(pdf_path)
-
-    if len(text.strip()) < 100:
-        text = extract_text_ocr(pdf_path)
-
-    return text
 
 
 def extract_text_from_pdf_sarvamai(pdf_path: str) -> str:
